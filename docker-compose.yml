@@ -1,4 +1,17 @@
 services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-super-secret-key-for-diploma}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      CATALOG_SERVICE_URL: http://catalog-service:8082
+      ORDER_SERVICE_URL: http://order-service:8083
+      PORT: 8080
+    depends_on:
+      - auth-service
+
   auth-service:
     build: ./auth-service
     ports:
