@@ -15,11 +15,16 @@ bin/
 dist/
 
 # Go build cache
-/vendor/
+# vendor/
+go.work
+go.work.sum
 
 # Go test output
 *.test
 *.out
+coverage.*
+*.coverprofile
+profile.cov
 
 # Flutter
 flutter_app/.dart_tool/
