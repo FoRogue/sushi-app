@@ -11,6 +11,7 @@ services:
       PORT: 8080
     depends_on:
       - auth-service
+      - catalog-service
 
   auth-service:
     build: ./auth-service
@@ -42,5 +43,35 @@ services:
       timeout: 5s
       retries: 5
 
+  catalog-service:
+    build: ./catalog-service
+    ports:
+      - "8082:8082"
+    environment:
+      DB_HOST: catalog-db
+      DB_PORT: 5432
+      DB_DATABASE: sushi_catalog_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      PORT: 8082
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+
+  catalog-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sushi_catalog_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - catalog-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   auth-db-data:
+  catalog-db-data:
