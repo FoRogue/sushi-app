@@ -34,6 +34,9 @@ flutter_app/build/
 flutter_app/.packages
 flutter_app/pubspec.lock
 
+# Claude Code
+.claude/
+
 # IDE
 .idea/
 .vscode/

@@ -1,4 +1,11 @@
 services:
+  flutter-app:
+    build: ./flutter_app
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+
   gateway:
     build: ./gateway
     ports:
