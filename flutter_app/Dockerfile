@@ -9,7 +9,7 @@ RUN flutter pub get
 
 # Copy source and build
 COPY . .
-RUN flutter build web --release
+RUN flutter build web --release --dart-define=API_BASE_URL=http://localhost:3000/api/
 
 # ── Stage 2: Serve with nginx ─────────────────────────────────────────────────
 FROM nginx:1.27-alpine
