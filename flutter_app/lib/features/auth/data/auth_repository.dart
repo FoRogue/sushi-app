@@ -11,10 +11,10 @@ class AuthRepository {
     required String password,
   }) async {
     final resp = await _dio.post(
-      '/auth/login/customer',
+      'auth/login/customer',
       data: {'phone': phone, 'password': password},
     );
-    await _persist(resp.data as Map<String, dynamic>);
+    await _persist(resp.data as Map<String, dynamic>, role: 'customer');
   }
 
   Future<void> loginCourier({
@@ -22,10 +22,10 @@ class AuthRepository {
     required String password,
   }) async {
     final resp = await _dio.post(
-      '/auth/login/courier',
+      'auth/login/courier',
       data: {'vehicle_code': vehicleCode, 'password': password},
     );
-    await _persist(resp.data as Map<String, dynamic>);
+    await _persist(resp.data as Map<String, dynamic>, role: 'courier');
   }
 
   Future<void> loginShop({
@@ -33,15 +33,17 @@ class AuthRepository {
     required String password,
   }) async {
     final resp = await _dio.post(
-      '/auth/login/shop',
+      'auth/login/shop',
       data: {'address': address, 'password': password},
     );
-    await _persist(resp.data as Map<String, dynamic>);
+    await _persist(resp.data as Map<String, dynamic>, role: 'shop');
   }
 
-  Future<void> _persist(Map<String, dynamic> data) => TokenStorage.save(
+  Future<void> _persist(Map<String, dynamic> data, {required String role}) =>
+      TokenStorage.save(
         accessToken: data['access_token'] as String,
         refreshToken: data['refresh_token'] as String,
+        role: role,
       );
 
   // ── Registration ────────────────────────────────────────────────────────────
@@ -52,7 +54,7 @@ class AuthRepository {
     required String password,
   }) =>
       _dio.post(
-        '/auth/register/customer',
+        'auth/register/customer',
         data: {'name': name, 'phone': phone, 'password': password},
       );
 
@@ -61,7 +63,7 @@ class AuthRepository {
     required String password,
   }) =>
       _dio.post(
-        '/auth/register/courier',
+        'auth/register/courier',
         data: {'vehicle_code': vehicleCode, 'password': password},
       );
 
@@ -71,7 +73,7 @@ class AuthRepository {
     required String password,
   }) =>
       _dio.post(
-        '/auth/register/shop',
+        'auth/register/shop',
         data: {'name': name, 'address': address, 'password': password},
       );
 }

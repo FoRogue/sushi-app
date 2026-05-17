@@ -2,19 +2,21 @@ import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../data/auth_repository.dart';
-import 'register_screen.dart';
 import 'widgets/auth_background.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
+class _LoginScreenState extends ConsumerState<LoginScreen>
     with TickerProviderStateMixin {
   static const _accent = Color(0xFFD9381E);
   static const _textDark = Color(0xFF222222);
@@ -115,15 +117,14 @@ class _LoginScreenState extends State<LoginScreen>
           );
       }
       if (!mounted) return;
-      // TODO: роутинг на домашний экран по роли
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Вы успешно вошли!'),
-          backgroundColor: _accent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      final roleStr = ['customer', 'courier', 'shop'][_roleIndex];
+      await ref.read(authProvider.notifier).onLogin(roleStr);
+      if (!mounted) return;
+      context.go(switch (_roleIndex) {
+        1 => '/courier/orders',
+        2 => '/shop/orders',
+        _ => '/customer/catalog',
+      });
     } on DioException catch (e) {
       if (!mounted) return;
       setState(() => _error = _dioError(e));
@@ -136,22 +137,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _goToRegister() async {
-    final result = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-    );
-    if (result == 'registered' && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Аккаунт создан! Теперь войдите.'),
-          backgroundColor: _accent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    }
+    context.push('/register');
   }
 
   String _dioError(DioException e) {
