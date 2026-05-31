@@ -25,6 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   final _nameCtrl = TextEditingController();
   final _primaryCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _addressCtrl = TextEditingController();
 
   bool _obscure = true;
   bool _loading = false;
@@ -66,6 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     _nameCtrl.dispose();
     _primaryCtrl.dispose();
     _passwordCtrl.dispose();
+    _addressCtrl.dispose();
     super.dispose();
   }
 
@@ -112,6 +114,7 @@ class _RegisterScreenState extends State<RegisterScreen>
         _nameCtrl.clear();
         _primaryCtrl.clear();
         _passwordCtrl.clear();
+        _addressCtrl.clear();
         _error = null;
       });
       _formAnim.forward();
@@ -141,6 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             name: _nameCtrl.text.trim(),
             login: _primaryCtrl.text.trim(),
             password: _passwordCtrl.text,
+            address: _addressCtrl.text.trim(),
           );
       }
       if (!mounted) return;
@@ -428,6 +432,17 @@ class _RegisterScreenState extends State<RegisterScreen>
                 validator: (v) =>
                     v == null || v.length < 4 ? 'Минимум 4 символа' : null,
               ),
+              if (_roleIndex == 2) ...[
+                const SizedBox(height: 12),
+                _buildInput(
+                  ctrl: _addressCtrl,
+                  label: 'Адрес магазина',
+                  hint: 'ул. Суши, д. 1',
+                  icon: Icons.location_on_outlined,
+                  validator: (v) =>
+                      v == null || v.trim().isEmpty ? 'Заполните поле' : null,
+                ),
+              ],
             ],
           ),
         ),
