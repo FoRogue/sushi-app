@@ -16,6 +16,7 @@ const (
 
 type MenuItem struct {
 	ID          uint           `gorm:"primarykey" json:"id"`
+	ShopID      uint           `gorm:"not null;index" json:"shop_id"`
 	Name        string         `gorm:"not null" json:"name"`
 	Description string         `json:"description"`
 	Price       float64        `gorm:"not null" json:"price"`
