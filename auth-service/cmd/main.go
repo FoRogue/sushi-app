@@ -54,6 +54,8 @@ func main() {
 		api.POST("/login/shop", h.LoginShop)
 
 		api.POST("/refresh", h.Refresh)
+
+		api.GET("/shops", h.ListShops)
 	}
 
 	port := os.Getenv("PORT")

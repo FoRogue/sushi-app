@@ -69,30 +69,38 @@ class _RegisterScreenState extends State<RegisterScreen>
     super.dispose();
   }
 
-  // Курьер регистрируется без имени
-  bool get _showName => _roleIndex != 1;
+  String get _nameLabel => switch (_roleIndex) {
+        0 => 'Ваше имя',
+        1 => 'ФИО',
+        _ => 'Название магазина',
+      };
 
-  String get _nameLabel =>
-      _roleIndex == 0 ? 'Ваше имя' : 'Название магазина';
-  String get _nameHint =>
-      _roleIndex == 0 ? 'Иван' : 'Суши Бар №1';
-  IconData get _nameIcon =>
-      _roleIndex == 0 ? Icons.person_outline : Icons.store_outlined;
+  String get _nameHint => switch (_roleIndex) {
+        0 => 'Иван',
+        1 => 'Иванов Иван Иванович',
+        _ => 'Суши Бар №1',
+      };
+
+  IconData get _nameIcon => switch (_roleIndex) {
+        0 => Icons.person_outline,
+        1 => Icons.badge_outlined,
+        _ => Icons.store_outlined,
+      };
 
   static const _primaryLabels = [
     'Номер телефона',
     'Код транспорта',
-    'Адрес магазина',
+    'Логин магазина',
   ];
   static const _primaryHints = [
     '+7 (999) 123-45-67',
     'А123БВ777',
-    'г. Москва, ул. Пушкина, д. 1',
+    'sushi_tokyo',
   ];
   static const _primaryIcons = [
     Icons.phone_outlined,
     Icons.directions_car_outlined,
-    Icons.location_on_outlined,
+    Icons.badge_outlined,
   ];
 
   void _switchRole(int i) {
@@ -124,13 +132,14 @@ class _RegisterScreenState extends State<RegisterScreen>
           );
         case 1:
           await _authRepo.registerCourier(
+            fullName: _nameCtrl.text.trim(),
             vehicleCode: _primaryCtrl.text.trim(),
             password: _passwordCtrl.text,
           );
         case 2:
           await _authRepo.registerShop(
             name: _nameCtrl.text.trim(),
-            address: _primaryCtrl.text.trim(),
+            login: _primaryCtrl.text.trim(),
             password: _passwordCtrl.text,
           );
       }
@@ -381,18 +390,15 @@ class _RegisterScreenState extends State<RegisterScreen>
           key: _formKey,
           child: Column(
             children: [
-              // Поле имени — только для покупателя и магазина
-              if (_showName) ...[
-                _buildInput(
-                  ctrl: _nameCtrl,
-                  label: _nameLabel,
-                  hint: _nameHint,
-                  icon: _nameIcon,
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Заполните поле' : null,
-                ),
-                const SizedBox(height: 12),
-              ],
+              _buildInput(
+                ctrl: _nameCtrl,
+                label: _nameLabel,
+                hint: _nameHint,
+                icon: _nameIcon,
+                validator: (v) =>
+                    v == null || v.trim().isEmpty ? 'Заполните поле' : null,
+              ),
+              const SizedBox(height: 12),
               _buildInput(
                 ctrl: _primaryCtrl,
                 label: _primaryLabels[_roleIndex],

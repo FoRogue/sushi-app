@@ -19,6 +19,8 @@ type User struct {
 	Name         *string        `gorm:"size:255"`
 	Phone        *string        `gorm:"uniqueIndex;size:20"`
 	VehicleCode  *string        `gorm:"uniqueIndex;size:20"`
+	FullName     *string        `gorm:"size:255"`
+	Login        *string        `gorm:"uniqueIndex;size:50"`
 	Address      *string        `gorm:"size:500"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time

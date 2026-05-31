@@ -29,12 +29,12 @@ class AuthRepository {
   }
 
   Future<void> loginShop({
-    required String address,
+    required String login,
     required String password,
   }) async {
     final resp = await _dio.post(
       'auth/login/shop',
-      data: {'address': address, 'password': password},
+      data: {'login': login, 'password': password},
     );
     await _persist(resp.data as Map<String, dynamic>, role: 'shop');
   }
@@ -59,21 +59,32 @@ class AuthRepository {
       );
 
   Future<void> registerCourier({
+    required String fullName,
     required String vehicleCode,
     required String password,
   }) =>
       _dio.post(
         'auth/register/courier',
-        data: {'vehicle_code': vehicleCode, 'password': password},
+        data: {
+          'full_name': fullName,
+          'vehicle_code': vehicleCode,
+          'password': password,
+        },
       );
 
   Future<void> registerShop({
     required String name,
-    required String address,
+    required String login,
     required String password,
+    String? address,
   }) =>
       _dio.post(
         'auth/register/shop',
-        data: {'name': name, 'address': address, 'password': password},
+        data: {
+          'name': name,
+          'login': login,
+          'password': password,
+          if (address != null && address.isNotEmpty) 'address': address,
+        },
       );
 }
