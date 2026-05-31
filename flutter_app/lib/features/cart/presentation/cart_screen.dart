@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/cart_provider.dart';
 import '../domain/cart_item.dart';
 import '../../orders/providers/orders_provider.dart';
+import '../../shops/providers/shops_provider.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -26,6 +27,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   Future<void> _placeOrder(List<CartItem> items) async {
+    final selectedShop = ref.read(selectedShopProvider);
+    if (selectedShop == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Выберите магазин в каталоге')),
+      );
+      return;
+    }
     if (_addressCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Укажите адрес доставки')),
@@ -35,10 +43,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     setState(() => _placing = true);
     try {
       await ref.read(ordersProvider.notifier).placeOrder(
+            shopId: selectedShop.id,
             address: _addressCtrl.text.trim(),
             items: items
                 .map((e) => {
-                      'product_id': e.product.id,
+                      'menu_item_id': int.parse(e.product.id),
                       'quantity': e.quantity,
                     })
                 .toList(),
@@ -50,7 +59,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           content: const Text('Заказ оформлен!'),
           backgroundColor: _accent,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       context.go('/customer/orders');
@@ -68,6 +78,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   Widget build(BuildContext context) {
     final items = ref.watch(cartProvider);
     final notifier = ref.read(cartProvider.notifier);
+    final selectedShop = ref.watch(selectedShopProvider);
 
     return Scaffold(
       backgroundColor: _bg,
@@ -91,6 +102,22 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                if (selectedShop != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.store_outlined,
+                            size: 16, color: Colors.grey),
+                        const SizedBox(width: 6),
+                        Text(
+                          selectedShop.name,
+                          style: const TextStyle(
+                              color: Colors.grey, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
                 ...items.map((item) => _CartItemTile(item: item)),
                 const SizedBox(height: 20),
                 _AddressField(controller: _addressCtrl),
@@ -273,16 +300,14 @@ class _OrderSummary extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Позиций: ${items.length}'),
-              Text('${total.toStringAsFixed(0)} ₽',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 16)),
-            ],
+          Text('Позиций: ${items.length}'),
+          Text(
+            '${total.toStringAsFixed(0)} ₽',
+            style: const TextStyle(
+                fontWeight: FontWeight.w700, fontSize: 16),
           ),
         ],
       ),

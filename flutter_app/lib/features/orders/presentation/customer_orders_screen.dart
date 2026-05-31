@@ -134,7 +134,7 @@ class _OrderCard extends StatelessWidget {
                     Text('${item.name} × ${item.quantity}',
                         style: const TextStyle(fontSize: 13)),
                     Text(
-                      '${(item.price * item.quantity).toStringAsFixed(0)} ₽',
+                      '${(item.unitPrice * item.quantity).toStringAsFixed(0)} ₽',
                       style: const TextStyle(fontSize: 13),
                     ),
                   ],
@@ -150,7 +150,7 @@ class _OrderCard extends StatelessWidget {
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
                 Text(
-                  '${order.total.toStringAsFixed(0)} ₽',
+                  '${order.totalPrice.toStringAsFixed(0)} ₽',
                   style: const TextStyle(
                     color: _accent,
                     fontWeight: FontWeight.w700,

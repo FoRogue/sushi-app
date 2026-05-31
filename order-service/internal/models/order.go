@@ -19,6 +19,7 @@ const (
 type Order struct {
 	ID         uint           `gorm:"primarykey" json:"id"`
 	CustomerID uint           `gorm:"not null;index" json:"customer_id"`
+	ShopID     uint           `gorm:"not null;index" json:"shop_id"`
 	CourierID  *uint          `json:"courier_id"`
 	Status     OrderStatus    `gorm:"type:varchar(20);not null;default:'pending'" json:"status"`
 	TotalPrice float64        `gorm:"not null" json:"total_price"`
@@ -36,4 +37,9 @@ type OrderItem struct {
 	Name       string  `gorm:"not null" json:"name"`
 	UnitPrice  float64 `gorm:"not null" json:"unit_price"`
 	Quantity   int     `gorm:"not null" json:"quantity"`
+}
+
+type OrderDecline struct {
+	OrderID   uint `gorm:"not null;index;uniqueIndex:idx_order_courier_decline" json:"order_id"`
+	CourierID uint `gorm:"not null;index;uniqueIndex:idx_order_courier_decline" json:"courier_id"`
 }

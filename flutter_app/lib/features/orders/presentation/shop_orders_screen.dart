@@ -185,7 +185,7 @@ class _ShopOrderCard extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Сумма: ${order.total.toStringAsFixed(0)} ₽',
+              'Сумма: ${order.totalPrice.toStringAsFixed(0)} ₽',
               style: const TextStyle(
                 color: _accent,
                 fontWeight: FontWeight.w700,
