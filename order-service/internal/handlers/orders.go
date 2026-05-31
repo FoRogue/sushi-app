@@ -194,7 +194,7 @@ func (h *OrderHandler) UpdateStatus(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.First(&order, id).Error; err != nil {
+	if err := h.db.Preload("Items").First(&order, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
 		return
 	}

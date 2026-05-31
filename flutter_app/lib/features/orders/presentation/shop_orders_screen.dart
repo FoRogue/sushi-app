@@ -78,21 +78,27 @@ class ShopOrdersScreen extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () => ref.read(ordersProvider.notifier).refresh(),
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                if (pending.isNotEmpty) ...[
-                  const _SectionHeader(title: 'Новые заказы'),
-                  const SizedBox(height: 8),
-                  ...pending.map((o) => _ShopOrderCard(order: o)),
-                  const SizedBox(height: 16),
-                ],
-                if (other.isNotEmpty) ...[
-                  const _SectionHeader(title: 'В обработке'),
-                  const SizedBox(height: 8),
-                  ...other.map((o) => _ShopOrderCard(order: o)),
-                ],
-              ],
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    if (pending.isNotEmpty) ...[
+                      const _SectionHeader(title: 'Новые заказы'),
+                      const SizedBox(height: 8),
+                      ...pending.map((o) => _ShopOrderCard(order: o)),
+                      const SizedBox(height: 16),
+                    ],
+                    if (other.isNotEmpty) ...[
+                      const _SectionHeader(title: 'В обработке'),
+                      const SizedBox(height: 8),
+                      ...other.map((o) => _ShopOrderCard(order: o)),
+                    ],
+                  ],
+                ),
+              ),
             ),
           );
         },
@@ -149,7 +155,7 @@ class _ShopOrderCard extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Заказ #${order.id.substring(0, 8)}',
+                  'Заказ #${order.id}',
                   style: const TextStyle(
                       fontWeight: FontWeight.w700, fontSize: 15),
                 ),

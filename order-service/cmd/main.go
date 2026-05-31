@@ -61,10 +61,10 @@ func main() {
 	customerOnly := middleware.RequireRole("customer")
 	allRoles := middleware.RequireRole("customer", "courier", "shop")
 
-	ordersGroup := api.Group("/orders")
+	ordersGroup := api.Group("")
 	{
-		ordersGroup.POST("", customerOnly, orders.Create)
-		ordersGroup.GET("", allRoles, orders.List)
+		ordersGroup.POST("/", customerOnly, orders.Create)
+		ordersGroup.GET("/", allRoles, orders.List)
 		ordersGroup.GET("/:id", allRoles, orders.Get)
 		ordersGroup.PATCH("/:id/status", allRoles, orders.UpdateStatus)
 	}
