@@ -76,11 +76,17 @@ class CourierOrdersScreen extends ConsumerWidget {
           }
           return RefreshIndicator(
             onRefresh: () => ref.read(ordersProvider.notifier).refresh(),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: active.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (_, i) => _CourierOrderCard(order: active[i]),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: active.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (_, i) => _CourierOrderCard(order: active[i]),
+                ),
+              ),
             ),
           );
         },

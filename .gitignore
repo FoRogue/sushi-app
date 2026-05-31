@@ -33,6 +33,8 @@ flutter_app/.flutter-plugins-dependencies
 flutter_app/build/
 flutter_app/.packages
 flutter_app/pubspec.lock
+flutter_app/windows/flutter/generated_plugin_registrant.cc
+flutter_app/windows/flutter/generated_plugins.cmake
 
 # Claude Code
 .claude/

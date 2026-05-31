@@ -99,7 +99,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       ),
       body: items.isEmpty
           ? const _EmptyCart()
-          : ListView(
+          : Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 if (selectedShop != null)
@@ -154,6 +158,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
                 const SizedBox(height: 24),
               ],
+            ),
+              ),
             ),
     );
   }

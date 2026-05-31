@@ -1,12 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../shops/providers/shops_provider.dart';
 import '../data/catalog_repository.dart';
 import '../domain/product.dart';
 
 final _repoProvider = Provider<CatalogRepository>(
-  (_) => CatalogRepository(ApiClient.create()),
+  (ref) => CatalogRepository(
+    ApiClient.create(
+      onUnauthorized: () => ref.read(authProvider.notifier).logout(),
+    ),
+  ),
 );
 
 // Каталог для покупателя — зависит от выбранного магазина

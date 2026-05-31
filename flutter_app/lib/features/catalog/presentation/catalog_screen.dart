@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../providers/catalog_provider.dart';
 import '../domain/product.dart';
 import '../../cart/providers/cart_provider.dart';
@@ -73,6 +74,14 @@ class CatalogScreen extends ConsumerWidget {
               ),
             );
           }),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Выйти',
+            onPressed: () async {
+              await ref.read(authProvider.notifier).logout();
+              if (context.mounted) context.go('/login');
+            },
+          ),
         ],
       ),
       body: state.when(
@@ -85,16 +94,30 @@ class CatalogScreen extends ConsumerWidget {
             ? const _EmptyView(message: 'Меню пусто')
             : RefreshIndicator(
                 onRefresh: () => ref.read(catalogProvider.notifier).refresh(),
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
-                    childAspectRatio: 0.72,
-                  ),
-                  itemCount: products.length,
-                  itemBuilder: (_, i) => _ProductCard(product: products[i]),
+                child: LayoutBuilder(
+                  builder: (_, constraints) {
+                    final w = constraints.maxWidth;
+                    final cols = w > 1100
+                        ? 5
+                        : w > 800
+                            ? 4
+                            : w > 550
+                                ? 3
+                                : 2;
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: cols,
+                        mainAxisSpacing: 14,
+                        crossAxisSpacing: 14,
+                        childAspectRatio: 0.72,
+                      ),
+                      itemCount: products.length,
+                      itemBuilder: (_, i) =>
+                          _ProductCard(product: products[i]),
+                    );
+                  },
                 ),
               ),
       ),

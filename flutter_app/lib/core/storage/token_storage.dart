@@ -1,12 +1,8 @@
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenStorage {
   TokenStorage._();
-
-  static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
 
   static const _kAccess = 'access_token';
   static const _kRefresh = 'refresh_token';
@@ -19,11 +15,12 @@ class TokenStorage {
     required String role,
   }) async {
     final userId = _extractUserId(accessToken);
+    final prefs = await SharedPreferences.getInstance();
     await Future.wait([
-      _storage.write(key: _kAccess, value: accessToken),
-      _storage.write(key: _kRefresh, value: refreshToken),
-      _storage.write(key: _kRole, value: role),
-      _storage.write(key: _kUserId, value: userId),
+      prefs.setString(_kAccess, accessToken),
+      prefs.setString(_kRefresh, refreshToken),
+      prefs.setString(_kRole, role),
+      prefs.setString(_kUserId, userId),
     ]);
   }
 
@@ -40,10 +37,28 @@ class TokenStorage {
     }
   }
 
-  static Future<String?> getAccessToken() => _storage.read(key: _kAccess);
-  static Future<String?> getRefreshToken() => _storage.read(key: _kRefresh);
-  static Future<String?> getRole() => _storage.read(key: _kRole);
-  static Future<String?> getUserId() => _storage.read(key: _kUserId);
+  static Future<String?> getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kAccess);
+  }
 
-  static Future<void> clear() => _storage.deleteAll();
+  static Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kRefresh);
+  }
+
+  static Future<String?> getRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kRole);
+  }
+
+  static Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kUserId);
+  }
+
+  static Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
 }

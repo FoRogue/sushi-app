@@ -9,7 +9,7 @@ class ApiClient {
     defaultValue: 'http://10.0.2.2:8080/api/',
   );
 
-  static Dio create() {
+  static Dio create({Future<void> Function()? onUnauthorized}) {
     final dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl,
@@ -18,12 +18,16 @@ class ApiClient {
         headers: {'Content-Type': 'application/json'},
       ),
     );
-    dio.interceptors.add(_AuthInterceptor());
+    dio.interceptors.add(_AuthInterceptor(onUnauthorized));
     return dio;
   }
 }
 
 class _AuthInterceptor extends Interceptor {
+  _AuthInterceptor(this._onUnauthorized);
+
+  final Future<void> Function()? _onUnauthorized;
+
   @override
   Future<void> onRequest(
     RequestOptions options,
@@ -34,5 +38,13 @@ class _AuthInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
+  }
+
+  @override
+  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401) {
+      await _onUnauthorized?.call();
+    }
+    handler.next(err);
   }
 }

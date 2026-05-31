@@ -1,17 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../data/order_repository.dart';
 import '../domain/order.dart';
 
-final _repoProvider = Provider<OrderRepository>(
-  (_) => OrderRepository(ApiClient.create()),
+final _repoProvider = Provider.autoDispose<OrderRepository>(
+  (ref) => OrderRepository(
+    ApiClient.create(
+      onUnauthorized: () => ref.read(authProvider.notifier).logout(),
+    ),
+  ),
 );
 
-final ordersProvider = AsyncNotifierProvider<OrdersNotifier, List<Order>>(
+final ordersProvider =
+    AsyncNotifierProvider.autoDispose<OrdersNotifier, List<Order>>(
   OrdersNotifier.new,
 );
 
-class OrdersNotifier extends AsyncNotifier<List<Order>> {
+class OrdersNotifier extends AutoDisposeAsyncNotifier<List<Order>> {
   @override
   Future<List<Order>> build() => ref.read(_repoProvider).getOrders();
 

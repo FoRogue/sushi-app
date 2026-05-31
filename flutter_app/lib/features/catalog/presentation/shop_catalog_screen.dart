@@ -213,6 +213,7 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _descCtrl;
   late final TextEditingController _priceCtrl;
+  late final TextEditingController _imageCtrl;
   late String _type;
   bool _saving = false;
 
@@ -222,9 +223,10 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
     final p = widget.existing;
     _nameCtrl = TextEditingController(text: p?.name ?? '');
     _descCtrl = TextEditingController(text: p?.description ?? '');
-    _priceCtrl = TextEditingController(
-        text: p != null ? p.price.toStringAsFixed(0) : '');
-    _type = p?.type ?? 'roll';
+    _priceCtrl =
+        TextEditingController(text: p != null ? p.price.toStringAsFixed(0) : '');
+    _imageCtrl = TextEditingController(text: p?.imageUrl ?? '');
+    _type = p?.type ?? 'sushi';
   }
 
   @override
@@ -232,6 +234,7 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
     _nameCtrl.dispose();
     _descCtrl.dispose();
     _priceCtrl.dispose();
+    _imageCtrl.dispose();
     super.dispose();
   }
 
@@ -244,6 +247,7 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
       name: _nameCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       price: double.parse(_priceCtrl.text.trim()),
+      imageUrl: _imageCtrl.text.trim(),
       type: _type,
     );
 
@@ -304,6 +308,8 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
               },
             ),
             const SizedBox(height: 10),
+            _Field(ctrl: _imageCtrl, label: 'URL изображения'),
+            const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               value: _type,
               decoration: InputDecoration(
@@ -316,8 +322,7 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: _accent, width: 1.8),
+                  borderSide: const BorderSide(color: _accent, width: 1.8),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 14),
@@ -327,7 +332,7 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
                 DropdownMenuItem(value: 'roll', child: Text('Ролл')),
                 DropdownMenuItem(value: 'drink', child: Text('Напиток')),
               ],
-              onChanged: (v) => setState(() => _type = v ?? 'roll'),
+              onChanged: (v) => setState(() => _type = v ?? 'sushi'),
             ),
             const SizedBox(height: 20),
             SizedBox(

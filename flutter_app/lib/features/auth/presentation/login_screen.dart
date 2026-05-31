@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -184,60 +183,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 
   Widget _buildCard() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(32),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 45, sigmaY: 45),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(0.30),
-                Colors.white.withOpacity(0.14),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.52),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: _accent.withOpacity(0.07),
-                blurRadius: 60,
-                spreadRadius: -5,
-                offset: const Offset(0, 30),
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 25,
-                offset: const Offset(0, 12),
-              ),
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: _accent.withOpacity(0.07),
+            blurRadius: 60,
+            spreadRadius: -5,
+            offset: const Offset(0, 30),
           ),
-          padding: const EdgeInsets.fromLTRB(28, 42, 28, 38),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 32),
-              _buildRoleTabs(),
-              const SizedBox(height: 28),
-              _buildForm(),
-              if (_error != null) ...[
-                const SizedBox(height: 14),
-                _buildError(),
-              ],
-              const SizedBox(height: 26),
-              _buildButton(),
-              const SizedBox(height: 20),
-              _buildRegisterLink(),
-            ],
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 25,
+            offset: const Offset(0, 12),
           ),
-        ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(28, 42, 28, 38),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 32),
+          _buildRoleTabs(),
+          const SizedBox(height: 28),
+          _buildForm(),
+          if (_error != null) ...[
+            const SizedBox(height: 14),
+            _buildError(),
+          ],
+          const SizedBox(height: 26),
+          _buildButton(),
+          const SizedBox(height: 20),
+          _buildRegisterLink(),
+        ],
       ),
     );
   }

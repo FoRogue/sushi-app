@@ -5,6 +5,7 @@ class Product {
     required this.description,
     required this.price,
     required this.type,
+    this.imageUrl = '',
   });
 
   final String id;
@@ -12,6 +13,7 @@ class Product {
   final String description;
   final double price;
   final String type;
+  final String imageUrl;
 
   String get typeLabel => switch (type) {
         'sushi' => 'Суши',
@@ -26,6 +28,7 @@ class Product {
         description: (j['description'] as String?) ?? '',
         price: (j['price'] as num).toDouble(),
         type: (j['type'] as String?) ?? 'sushi',
+        imageUrl: (j['image_url'] as String?) ?? '',
       );
 
   Map<String, dynamic> toJson() => {
