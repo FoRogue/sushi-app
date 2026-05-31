@@ -25,7 +25,7 @@ API Gateway :8080
 - При логине получаем `access_token` (живёт ~15 мин) и `refresh_token` (~30 дней).
 - `access_token` кладём в заголовок: `Authorization: Bearer <token>`.
 - Когда `access_token` протух — тихо обновляем через `POST /api/auth/refresh`.
-- `refresh_token` храним в `flutter_secure_storage` (не в SharedPreferences).
+- `refresh_token` и `access_token` храним в `shared_preferences` (на Flutter Web `flutter_secure_storage` зависает из-за WebCrypto API).
 
 ---
 
@@ -52,8 +52,9 @@ API Gateway :8080
 | **Детали заказа** | Адрес доставки + состав + кнопка смены статуса. |
 
 Статусы которые курьер меняет:
-- Нажал "Взять заказ" → `accepted` → `picked_up`
-- Нажал "Доставлен" → `picked_up` → `delivered`
+- Нажал "Забрал заказ" → `accepted` → `picked_up`
+- Нажал "Подтвердить доставку" → `picked_up` → `delivered`
+- Нажал "Отказаться" → заказ возвращается в пул, курьер больше не видит его
 
 ### shop — Магазин
 
@@ -106,7 +107,6 @@ API Gateway :8080
 - Пуш-уведомления
 - Карта для курьера
 - Оплата онлайн
-- Регистрация (пока логин через заранее созданных пользователей)
 
 ---
 
@@ -129,8 +129,8 @@ GET /api/catalog/combos
 GET /api/catalog/promotions
 
 # Заказы
-POST /api/orders
-{ "address": "ул. Пушкина, д. 1", "items": [{ "menu_item_id": 5, "quantity": 2 }] }
+POST /api/orders/
+{ "shop_id": 3, "address": "ул. Пушкина, д. 1", "items": [{ "menu_item_id": 5, "quantity": 2 }] }
 
 GET /api/orders          # список (каждый видит своё по роли)
 GET /api/orders/:id
@@ -149,7 +149,7 @@ PATCH /api/orders/:id/status
 | Задача | Пакет |
 |--------|-------|
 | HTTP-клиент | `dio` + interceptor для токенов |
-| Хранение токенов | `flutter_secure_storage` |
+| Хранение токенов | `shared_preferences` |
 | Стейт-менеджмент | `riverpod` или `bloc` |
 | Навигация | `go_router` |
 | JSON-модели | `freezed` + `json_serializable` |
