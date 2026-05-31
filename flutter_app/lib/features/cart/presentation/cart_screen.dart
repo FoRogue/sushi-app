@@ -38,7 +38,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             address: _addressCtrl.text.trim(),
             items: items
                 .map((e) => {
-                      'product_id': e.product.id,
+                      'menu_item_id': int.parse(e.product.id),
                       'quantity': e.quantity,
                     })
                 .toList(),
@@ -88,7 +88,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       ),
       body: items.isEmpty
           ? const _EmptyCart()
-          : ListView(
+          : Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 ...items.map((item) => _CartItemTile(item: item)),
@@ -127,6 +131,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
                 const SizedBox(height: 24),
               ],
+            ),
+              ),
             ),
     );
   }

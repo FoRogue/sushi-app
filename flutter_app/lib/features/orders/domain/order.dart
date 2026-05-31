@@ -12,10 +12,10 @@ class OrderItem {
   final double price;
 
   factory OrderItem.fromJson(Map<String, dynamic> j) => OrderItem(
-        productId: j['product_id'] as String,
+        productId: j['menu_item_id'].toString(),
         name: j['name'] as String,
         quantity: j['quantity'] as int,
-        price: (j['price'] as num).toDouble(),
+        price: (j['unit_price'] as num).toDouble(),
       );
 }
 
@@ -46,11 +46,11 @@ class Order {
       };
 
   factory Order.fromJson(Map<String, dynamic> j) => Order(
-        id: j['id'] as String,
-        items: (j['items'] as List<dynamic>)
+        id: j['id'].toString(),
+        items: ((j['items'] as List<dynamic>?) ?? [])
             .map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
             .toList(),
-        total: (j['total'] as num).toDouble(),
+        total: (j['total_price'] as num).toDouble(),
         status: j['status'] as String,
         address: (j['address'] as String?) ?? '',
         createdAt: DateTime.parse(j['created_at'] as String),
