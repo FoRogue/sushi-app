@@ -31,3 +31,10 @@ class AuthNotifier extends AsyncNotifier<UserRole?> {
 
 final authProvider =
     AsyncNotifierProvider<AuthNotifier, UserRole?>(() => AuthNotifier());
+
+final userIdProvider = FutureProvider<int?>((ref) async {
+  ref.watch(authProvider);
+  final raw = await TokenStorage.getUserId();
+  if (raw == null || raw.isEmpty) return null;
+  return int.tryParse(raw);
+});

@@ -4,14 +4,25 @@ import 'package:go_router/go_router.dart';
 import '../providers/catalog_provider.dart';
 import '../domain/product.dart';
 import '../../cart/providers/cart_provider.dart';
+import '../../shops/providers/shops_provider.dart';
+import '../../shops/domain/shop.dart';
 
 class CatalogScreen extends ConsumerWidget {
   const CatalogScreen({super.key});
 
   static const _bg = Color(0xFFF9F6F0);
+  static const _accent = Color(0xFFD9381E);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final selectedShop = ref.watch(selectedShopProvider);
+
+    if (selectedShop == null) {
+      return _ShopsListView(onSelect: (shop) {
+        ref.read(selectedShopProvider.notifier).state = shop;
+      });
+    }
+
     final state = ref.watch(catalogProvider);
 
     return Scaffold(
@@ -19,10 +30,35 @@ class CatalogScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: _bg,
         elevation: 0,
-        title: const Text(
-          'Каталог',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 22),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Каталог',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 22),
+            ),
+            GestureDetector(
+              onTap: () =>
+                  ref.read(selectedShopProvider.notifier).state = null,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    selectedShop.name,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: _accent,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.swap_horiz, size: 14, color: _accent),
+                ],
+              ),
+            ),
+          ],
         ),
+        toolbarHeight: 64,
         actions: [
           Consumer(builder: (_, ref, __) {
             final count = ref.watch(
@@ -46,7 +82,7 @@ class CatalogScreen extends ConsumerWidget {
           onRetry: () => ref.read(catalogProvider.notifier).refresh(),
         ),
         data: (products) => products.isEmpty
-            ? const _EmptyView(message: 'Каталог пуст')
+            ? const _EmptyView(message: 'Меню пусто')
             : RefreshIndicator(
                 onRefresh: () => ref.read(catalogProvider.notifier).refresh(),
                 child: GridView.builder(
@@ -66,6 +102,132 @@ class CatalogScreen extends ConsumerWidget {
   }
 }
 
+class _ShopsListView extends ConsumerWidget {
+  const _ShopsListView({required this.onSelect});
+
+  final void Function(Shop) onSelect;
+
+  static const _bg = Color(0xFFF9F6F0);
+  static const _accent = Color(0xFFD9381E);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(shopsProvider);
+
+    return Scaffold(
+      backgroundColor: _bg,
+      appBar: AppBar(
+        backgroundColor: _bg,
+        elevation: 0,
+        title: const Text(
+          'Выберите магазин',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 22),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => ref.read(shopsProvider.notifier).refresh(),
+          ),
+        ],
+      ),
+      body: state.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+              const SizedBox(height: 12),
+              Text(e.toString(), textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: () => ref.read(shopsProvider.notifier).refresh(),
+                child: const Text('Повторить'),
+              ),
+            ],
+          ),
+        ),
+        data: (shops) => shops.isEmpty
+            ? const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('🏪', style: TextStyle(fontSize: 56)),
+                    SizedBox(height: 12),
+                    Text(
+                      'Нет зарегистрированных магазинов',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                  ],
+                ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: shops.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (_, i) {
+                  final shop = shops[i];
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => onSelect(shop),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: _accent.withOpacity(0.10),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text('🏪',
+                                    style: TextStyle(fontSize: 24)),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    shop.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  if (shop.address != null &&
+                                      shop.address!.isNotEmpty)
+                                    Text(
+                                      shop.address!,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right,
+                                color: Colors.grey),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
+    );
+  }
+}
+
 class _ProductCard extends ConsumerWidget {
   const _ProductCard({required this.product});
 
@@ -77,7 +239,9 @@ class _ProductCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final inCart = ref.watch(
       cartProvider.select(
-        (c) => c.where((e) => e.product.id == product.id).fold(0, (s, e) => s + e.quantity),
+        (c) => c
+            .where((e) => e.product.id == product.id)
+            .fold(0, (s, e) => s + e.quantity),
       ),
     );
 
@@ -89,13 +253,23 @@ class _ProductCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: product.imageUrl.isNotEmpty
-                ? Image.network(
-                    product.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const _PlaceholderImage(),
-                  )
-                : const _PlaceholderImage(),
+            child: Container(
+              color: const Color(0xFFEEE8E0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('🍱', style: TextStyle(fontSize: 40)),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.typeLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
@@ -193,20 +367,6 @@ class _CounterBtn extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, size: 16, color: const Color(0xFFD9381E)),
-      ),
-    );
-  }
-}
-
-class _PlaceholderImage extends StatelessWidget {
-  const _PlaceholderImage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFEEE8E0),
-      child: const Center(
-        child: Text('🍱', style: TextStyle(fontSize: 40)),
       ),
     );
   }
