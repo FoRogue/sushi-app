@@ -1,37 +1,39 @@
 class OrderItem {
   const OrderItem({
-    required this.productId,
+    required this.menuItemId,
     required this.name,
     required this.quantity,
-    required this.price,
+    required this.unitPrice,
   });
 
-  final String productId;
+  final int menuItemId;
   final String name;
   final int quantity;
-  final double price;
+  final double unitPrice;
 
   factory OrderItem.fromJson(Map<String, dynamic> j) => OrderItem(
-        productId: j['menu_item_id'].toString(),
+        menuItemId: j['menu_item_id'] as int,
         name: j['name'] as String,
         quantity: j['quantity'] as int,
-        price: (j['unit_price'] as num).toDouble(),
+        unitPrice: (j['unit_price'] as num).toDouble(),
       );
 }
 
 class Order {
   const Order({
     required this.id,
+    required this.shopId,
     required this.items,
-    required this.total,
+    required this.totalPrice,
     required this.status,
     required this.address,
     required this.createdAt,
   });
 
   final String id;
+  final int shopId;
   final List<OrderItem> items;
-  final double total;
+  final double totalPrice;
   final String status;
   final String address;
   final DateTime createdAt;
@@ -47,10 +49,11 @@ class Order {
 
   factory Order.fromJson(Map<String, dynamic> j) => Order(
         id: j['id'].toString(),
-        items: ((j['items'] as List<dynamic>?) ?? [])
+        shopId: j['shop_id'] as int,
+        items: (j['items'] as List<dynamic>? ?? [])
             .map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
             .toList(),
-        total: (j['total_price'] as num).toDouble(),
+        totalPrice: (j['total_price'] as num).toDouble(),
         status: j['status'] as String,
         address: (j['address'] as String?) ?? '',
         createdAt: DateTime.parse(j['created_at'] as String),

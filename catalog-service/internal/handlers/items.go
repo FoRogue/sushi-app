@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -18,6 +19,15 @@ func NewItemHandler(db *gorm.DB) *ItemHandler {
 	return &ItemHandler{db: db}
 }
 
+func shopIDFromHeader(c *gin.Context) (uint, error) {
+	raw := c.GetHeader("X-User-ID")
+	id, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid X-User-ID")
+	}
+	return uint(id), nil
+}
+
 type createItemInput struct {
 	Name        string          `json:"name" binding:"required"`
 	Description string          `json:"description"`
@@ -28,6 +38,9 @@ type createItemInput struct {
 func (h *ItemHandler) List(c *gin.Context) {
 	var items []models.MenuItem
 	q := h.db.Where("is_available = ?", true)
+	if sid := c.Query("shop_id"); sid != "" {
+		q = q.Where("shop_id = ?", sid)
+	}
 	if t := c.Query("type"); t != "" {
 		q = q.Where("type = ?", t)
 	}
@@ -53,12 +66,19 @@ func (h *ItemHandler) Get(c *gin.Context) {
 }
 
 func (h *ItemHandler) Create(c *gin.Context) {
+	sid, err := shopIDFromHeader(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	var input createItemInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	item := models.MenuItem{
+		ShopID:      sid,
 		Name:        input.Name,
 		Description: input.Description,
 		Price:       input.Price,
@@ -73,6 +93,12 @@ func (h *ItemHandler) Create(c *gin.Context) {
 }
 
 func (h *ItemHandler) Update(c *gin.Context) {
+	sid, err := shopIDFromHeader(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
@@ -83,6 +109,11 @@ func (h *ItemHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "item not found"})
 		return
 	}
+	if item.ShopID != sid {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
 	var input struct {
 		Name        *string          `json:"name"`
 		Description *string          `json:"description"`
@@ -118,12 +149,29 @@ func (h *ItemHandler) Update(c *gin.Context) {
 }
 
 func (h *ItemHandler) Delete(c *gin.Context) {
+	sid, err := shopIDFromHeader(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	if err := h.db.Delete(&models.MenuItem{}, id).Error; err != nil {
+
+	var item models.MenuItem
+	if err := h.db.First(&item, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "item not found"})
+		return
+	}
+	if item.ShopID != sid {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	if err := h.db.Delete(&item).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete item"})
 		return
 	}

@@ -71,12 +71,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     super.dispose();
   }
 
-  static const _labels = ['Номер телефона', 'Код транспорта', 'Адрес магазина'];
-  static const _hints = ['+7 (999) 123-45-67', 'А123БВ777', 'г. Москва, ул. Пушкина, д. 1'];
+  static const _labels = ['Номер телефона', 'Код транспорта', 'Логин магазина'];
+  static const _hints = ['+7 (999) 123-45-67', 'А123БВ777', 'sushi_tokyo'];
   static const _icons = [
     Icons.phone_outlined,
     Icons.directions_car_outlined,
-    Icons.location_on_outlined,
+    Icons.badge_outlined,
   ];
 
   void _switchRole(int i) {
@@ -111,7 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           );
         case 2:
           await _authRepo.loginShop(
-            address: _field1Ctrl.text.trim(),
+            login: _field1Ctrl.text.trim(),
             password: _passwordCtrl.text,
           );
       }
@@ -580,4 +580,3 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 }
-

@@ -31,8 +31,8 @@ Redis — refresh tokens, order event pub/sub, cache
 | Role | Registration | Access |
 |------|-------------|--------|
 | Customer | Phone + password | Place orders, track delivery |
-| Courier | Vehicle code | Accept and deliver orders |
-| Shop | Address + details | Manage catalog, accept orders |
+| Courier | Full name + vehicle code | Accept, deliver, or decline orders |
+| Shop | Name + login + address + password | Manage catalog, accept orders |
 
 ## Getting Started
 

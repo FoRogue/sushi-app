@@ -15,6 +15,13 @@ class Product {
   final String type;
   final String imageUrl;
 
+  String get typeLabel => switch (type) {
+        'sushi' => 'Суши',
+        'roll' => 'Ролл',
+        'drink' => 'Напиток',
+        _ => type,
+      };
+
   factory Product.fromJson(Map<String, dynamic> j) => Product(
         id: j['id'].toString(),
         name: j['name'] as String,

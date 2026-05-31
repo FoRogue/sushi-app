@@ -70,6 +70,7 @@ func (h *AuthHandler) RegisterCustomer(c *gin.Context) {
 }
 
 type RegisterCourierInput struct {
+	FullName    string `json:"full_name" binding:"required"`
 	VehicleCode string `json:"vehicle_code" binding:"required"`
 	Password    string `json:"password" binding:"required,min=6"`
 }
@@ -93,8 +94,8 @@ func (h *AuthHandler) RegisterCourier(c *gin.Context) {
 		return
 	}
 
-	vc := input.VehicleCode
-	user := models.User{Role: models.RoleCourier, PasswordHash: hash, VehicleCode: &vc}
+	vc, fn := input.VehicleCode, input.FullName
+	user := models.User{Role: models.RoleCourier, PasswordHash: hash, VehicleCode: &vc, FullName: &fn}
 	if err := h.db.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось создать пользователя"})
 		return
@@ -105,7 +106,8 @@ func (h *AuthHandler) RegisterCourier(c *gin.Context) {
 
 type RegisterShopInput struct {
 	Name     string `json:"name" binding:"required"`
-	Address  string `json:"address" binding:"required"`
+	Login    string `json:"login" binding:"required"`
+	Address  string `json:"address"`
 	Password string `json:"password" binding:"required,min=6"`
 }
 
@@ -117,8 +119,8 @@ func (h *AuthHandler) RegisterShop(c *gin.Context) {
 	}
 
 	var existing models.User
-	if h.db.Where("address = ?", input.Address).First(&existing).Error == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Такой адрес уже зарегистрирован"})
+	if h.db.Where("login = ?", input.Login).First(&existing).Error == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Такой логин уже занят"})
 		return
 	}
 
@@ -128,8 +130,11 @@ func (h *AuthHandler) RegisterShop(c *gin.Context) {
 		return
 	}
 
-	name, address := input.Name, input.Address
-	user := models.User{Role: models.RoleShop, PasswordHash: hash, Name: &name, Address: &address}
+	name, login := input.Name, input.Login
+	user := models.User{Role: models.RoleShop, PasswordHash: hash, Name: &name, Login: &login}
+	if input.Address != "" {
+		user.Address = &input.Address
+	}
 	if err := h.db.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось создать пользователя"})
 		return
@@ -205,7 +210,7 @@ func (h *AuthHandler) LoginCourier(c *gin.Context) {
 }
 
 type LoginShopInput struct {
-	Address  string `json:"address" binding:"required"`
+	Login    string `json:"login" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -217,13 +222,13 @@ func (h *AuthHandler) LoginShop(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := h.db.Where("address = ? AND role = ?", input.Address, models.RoleShop).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный адрес или пароль"})
+	if err := h.db.Where("login = ? AND role = ?", input.Login, models.RoleShop).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный логин или пароль"})
 		return
 	}
 
 	if !checkPassword(user.PasswordHash, input.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный адрес или пароль"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный логин или пароль"})
 		return
 	}
 
@@ -256,4 +261,26 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"access_token": access, "refresh_token": refresh})
+}
+
+// --- Shops list ---
+
+type shopResponse struct {
+	ID      uint    `json:"id"`
+	Name    *string `json:"name"`
+	Login   *string `json:"login"`
+	Address *string `json:"address"`
+}
+
+func (h *AuthHandler) ListShops(c *gin.Context) {
+	var users []models.User
+	if err := h.db.Where("role = ?", models.RoleShop).Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка сервера"})
+		return
+	}
+	shops := make([]shopResponse, len(users))
+	for i, u := range users {
+		shops[i] = shopResponse{ID: u.ID, Name: u.Name, Login: u.Login, Address: u.Address}
+	}
+	c.JSON(http.StatusOK, shops)
 }

@@ -6,8 +6,11 @@ class CatalogRepository {
 
   final Dio _dio;
 
-  Future<List<Product>> getProducts() async {
-    final resp = await _dio.get('catalog/items');
+  Future<List<Product>> getProducts({int? shopId}) async {
+    final resp = await _dio.get(
+      'catalog/items',
+      queryParameters: shopId != null ? {'shop_id': shopId} : null,
+    );
     final list = resp.data as List<dynamic>;
     return list.map((e) => Product.fromJson(e as Map<String, dynamic>)).toList();
   }

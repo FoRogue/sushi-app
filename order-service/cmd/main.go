@@ -46,7 +46,7 @@ func main() {
 		log.Fatal("failed to connect to database:", err)
 	}
 
-	if err := db.AutoMigrate(&models.Order{}, &models.OrderItem{}); err != nil {
+	if err := db.AutoMigrate(&models.Order{}, &models.OrderItem{}, &models.OrderDecline{}); err != nil {
 		log.Fatal("failed to migrate:", err)
 	}
 
@@ -60,6 +60,7 @@ func main() {
 	api := r.Group("/api")
 	customerOnly := middleware.RequireRole("customer")
 	allRoles := middleware.RequireRole("customer", "courier", "shop")
+	courierOnly := middleware.RequireRole("courier")
 
 	ordersGroup := api.Group("")
 	{
@@ -67,6 +68,7 @@ func main() {
 		ordersGroup.GET("/", allRoles, orders.List)
 		ordersGroup.GET("/:id", allRoles, orders.Get)
 		ordersGroup.PATCH("/:id/status", allRoles, orders.UpdateStatus)
+		ordersGroup.POST("/:id/decline", courierOnly, orders.Decline)
 	}
 
 	port := os.Getenv("PORT")

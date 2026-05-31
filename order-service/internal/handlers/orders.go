@@ -38,6 +38,7 @@ type orderItemInput struct {
 }
 
 type createOrderInput struct {
+	ShopID  uint             `json:"shop_id" binding:"required"`
 	Address string           `json:"address" binding:"required"`
 	Items   []orderItemInput `json:"items" binding:"required,min=1"`
 }
@@ -79,6 +80,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 
 	order := models.Order{
 		CustomerID: custID,
+		ShopID:     input.ShopID,
 		Status:     models.StatusPending,
 		TotalPrice: total,
 		Address:    input.Address,
@@ -109,8 +111,12 @@ func (h *OrderHandler) List(c *gin.Context) {
 	case "customer":
 		q = q.Where("customer_id = ?", uid)
 	case "courier":
-		q = q.Where("status = ? OR courier_id = ?", models.StatusAccepted, uid)
+		q = q.Where(
+			"(status = ? AND id NOT IN (SELECT order_id FROM order_declines WHERE courier_id = ?)) OR courier_id = ?",
+			models.StatusAccepted, uid, uid,
+		)
 	case "shop":
+		q = q.Where("shop_id = ?", uid)
 		if s := c.Query("status"); s != "" {
 			q = q.Where("status = ?", s)
 		}
@@ -145,9 +151,17 @@ func (h *OrderHandler) Get(c *gin.Context) {
 		return
 	}
 
-	if role == "customer" && order.CustomerID != uid {
-		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
+	switch role {
+	case "customer":
+		if order.CustomerID != uid {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+	case "shop":
+		if order.ShopID != uid {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, order)
@@ -199,8 +213,11 @@ func (h *OrderHandler) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	// customer can only cancel their own order
 	if role == "customer" && order.CustomerID != uid {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+	if role == "shop" && order.ShopID != uid {
 		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
@@ -219,15 +236,61 @@ func (h *OrderHandler) UpdateStatus(c *gin.Context) {
 	updates := map[string]interface{}{"status": nextStatus}
 	if nextStatus == models.StatusPickedUp {
 		updates["courier_id"] = uid
+		// Защита от гонки: берём только если никто не взял
+		result := h.db.Model(&order).Where("courier_id IS NULL").Updates(updates)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update status"})
+			return
+		}
+		if result.RowsAffected == 0 {
+			c.JSON(http.StatusConflict, gin.H{"error": "заказ уже взят другим курьером"})
+			return
+		}
+	} else {
+		if err := h.db.Model(&order).Updates(updates).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update status"})
+			return
+		}
 	}
 
-	if err := h.db.Model(&order).Updates(updates).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update status"})
-		return
-	}
 	order.Status = nextStatus
 	if nextStatus == models.StatusPickedUp {
 		order.CourierID = &uid
 	}
 	c.JSON(http.StatusOK, order)
+}
+
+// --- Decline ---
+
+func (h *OrderHandler) Decline(c *gin.Context) {
+	uid, err := userID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	var order models.Order
+	if err := h.db.First(&order, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
+		return
+	}
+
+	if order.Status != models.StatusAccepted {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "можно отказаться только от принятого заказа"})
+		return
+	}
+
+	decline := models.OrderDecline{OrderID: uint(id), CourierID: uid}
+	if err := h.db.Create(&decline).Error; err != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "заказ уже отклонён"})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }

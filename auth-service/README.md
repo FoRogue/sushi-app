@@ -58,6 +58,7 @@ go run ./cmd/main.go
 **Тело запроса:**
 ```json
 {
+  "full_name": "Иванов Иван Иванович",
   "vehicle_code": "А123БВ777",
   "password": "secret123"
 }
@@ -78,6 +79,7 @@ go run ./cmd/main.go
 ```json
 {
   "name": "Суши Бар №1",
+  "login": "sushi_bar_1",
   "address": "г. Москва, ул. Пушкина, д. 1",
   "password": "secret123"
 }
@@ -141,7 +143,7 @@ go run ./cmd/main.go
 **Тело запроса:**
 ```json
 {
-  "address": "г. Москва, ул. Пушкина, д. 1",
+  "login": "sushi_bar_1",
   "password": "secret123"
 }
 ```

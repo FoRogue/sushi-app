@@ -13,10 +13,12 @@ class OrderRepository {
   }
 
   Future<Order> createOrder({
+    required int shopId,
     required String address,
     required List<Map<String, dynamic>> items,
   }) async {
     final resp = await _dio.post('orders/', data: {
+      'shop_id': shopId,
       'address': address,
       'items': items,
     });
@@ -30,4 +32,6 @@ class OrderRepository {
     );
     return Order.fromJson(resp.data as Map<String, dynamic>);
   }
+
+  Future<void> declineOrder(String id) => _dio.post('orders/$id/decline');
 }

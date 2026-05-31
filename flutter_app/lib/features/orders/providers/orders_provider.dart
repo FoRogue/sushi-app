@@ -27,10 +27,12 @@ class OrdersNotifier extends AutoDisposeAsyncNotifier<List<Order>> {
   }
 
   Future<void> placeOrder({
+    required int shopId,
     required String address,
     required List<Map<String, dynamic>> items,
   }) async {
     final order = await ref.read(_repoProvider).createOrder(
+          shopId: shopId,
           address: address,
           items: items,
         );
@@ -43,6 +45,13 @@ class OrdersNotifier extends AutoDisposeAsyncNotifier<List<Order>> {
       (state.valueOrNull ?? [])
           .map((e) => e.id == id ? updated : e)
           .toList(),
+    );
+  }
+
+  Future<void> declineOrder(String id) async {
+    await ref.read(_repoProvider).declineOrder(id);
+    state = AsyncData(
+      (state.valueOrNull ?? []).where((e) => e.id != id).toList(),
     );
   }
 }

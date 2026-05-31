@@ -39,6 +39,12 @@ func main() {
 	// Защищённые маршруты — требуют валидный JWT
 	authMW := middleware.Auth(jwtSecret)
 
+	// Защищённые эндпоинты auth-service (список магазинов и др.)
+	usersProxy := proxy.New(authURL, "users")
+	usersGroup := api.Group("/users")
+	usersGroup.Use(authMW)
+	usersGroup.Any("/*path", usersProxy)
+
 	catalog := api.Group("/catalog")
 	catalog.Use(authMW)
 	catalog.Any("/*path", proxy.New(catalogURL, "catalog"))

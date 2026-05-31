@@ -11,7 +11,7 @@ class ShopCatalogScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(catalogProvider);
+    final state = ref.watch(shopCatalogProvider);
 
     return Scaffold(
       backgroundColor: _bg,
@@ -25,7 +25,7 @@ class ShopCatalogScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(catalogProvider.notifier).refresh(),
+            onPressed: () => ref.read(shopCatalogProvider.notifier).refresh(),
           ),
         ],
       ),
@@ -49,7 +49,8 @@ class ShopCatalogScreen extends ConsumerWidget {
               Text(e.toString(), textAlign: TextAlign.center),
               const SizedBox(height: 12),
               FilledButton(
-                onPressed: () => ref.read(catalogProvider.notifier).refresh(),
+                onPressed: () =>
+                    ref.read(shopCatalogProvider.notifier).refresh(),
                 child: const Text('Повторить'),
               ),
             ],
@@ -68,16 +69,17 @@ class ShopCatalogScreen extends ConsumerWidget {
                 ),
               )
             : RefreshIndicator(
-                onRefresh: () => ref.read(catalogProvider.notifier).refresh(),
+                onRefresh: () =>
+                    ref.read(shopCatalogProvider.notifier).refresh(),
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
                   itemCount: products.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (_, i) => _ShopProductTile(
                     product: products[i],
-                    onEdit: () =>
-                        _showProductSheet(context, ref, products[i]),
-                    onDelete: () => _confirmDelete(context, ref, products[i]),
+                    onEdit: () => _showProductSheet(context, ref, products[i]),
+                    onDelete: () =>
+                        _confirmDelete(context, ref, products[i]),
                   ),
                 ),
               ),
@@ -85,7 +87,8 @@ class ShopCatalogScreen extends ConsumerWidget {
     );
   }
 
-  void _showProductSheet(BuildContext context, WidgetRef ref, Product? existing) {
+  void _showProductSheet(
+      BuildContext context, WidgetRef ref, Product? existing) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -110,7 +113,7 @@ class ShopCatalogScreen extends ConsumerWidget {
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
-              ref.read(catalogProvider.notifier).delete(p.id);
+              ref.read(shopCatalogProvider.notifier).delete(p.id);
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Удалить'),
@@ -143,22 +146,19 @@ class _ShopProductTile extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: product.imageUrl.isNotEmpty
-              ? Image.network(
-                  product.imageUrl,
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const _Placeholder(),
-                )
-              : const _Placeholder(),
+          child: Container(
+            width: 56,
+            height: 56,
+            color: const Color(0xFFEEE8E0),
+            child: const Center(child: Text('🍱', style: TextStyle(fontSize: 22))),
+          ),
         ),
         title: Text(
           product.name,
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
         ),
         subtitle: Text(
-          product.description,
+          '${product.typeLabel}${product.description.isNotEmpty ? ' • ${product.description}' : ''}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 12),
@@ -177,7 +177,8 @@ class _ShopProductTile extends StatelessWidget {
             const SizedBox(width: 8),
             PopupMenuButton(
               itemBuilder: (_) => [
-                const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
+                const PopupMenuItem(
+                    value: 'edit', child: Text('Редактировать')),
                 const PopupMenuItem(
                     value: 'delete',
                     child: Text('Удалить',
@@ -191,20 +192,6 @@ class _ShopProductTile extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _Placeholder extends StatelessWidget {
-  const _Placeholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 56,
-      height: 56,
-      color: const Color(0xFFEEE8E0),
-      child: const Center(child: Text('🍱', style: TextStyle(fontSize: 22))),
     );
   }
 }
@@ -266,10 +253,10 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
 
     try {
       if (widget.existing == null) {
-        await widget.ref.read(catalogProvider.notifier).create(product);
+        await widget.ref.read(shopCatalogProvider.notifier).create(product);
       } else {
         await widget.ref
-            .read(catalogProvider.notifier)
+            .read(shopCatalogProvider.notifier)
             .editProduct(widget.existing!.id, product);
       }
       if (mounted) Navigator.pop(context);
@@ -301,8 +288,8 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
           children: [
             Text(
               isEdit ? 'Редактировать товар' : 'Новый товар',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w800, fontSize: 20),
+              style:
+                  const TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
             ),
             const SizedBox(height: 16),
             _Field(ctrl: _nameCtrl, label: 'Название', required: true),
@@ -342,8 +329,8 @@ class _ProductFormSheetState extends State<_ProductFormSheet> {
               ),
               items: const [
                 DropdownMenuItem(value: 'sushi', child: Text('Суши')),
-                DropdownMenuItem(value: 'roll', child: Text('Роллы')),
-                DropdownMenuItem(value: 'drink', child: Text('Напитки')),
+                DropdownMenuItem(value: 'roll', child: Text('Ролл')),
+                DropdownMenuItem(value: 'drink', child: Text('Напиток')),
               ],
               onChanged: (v) => setState(() => _type = v ?? 'sushi'),
             ),
@@ -415,18 +402,15 @@ class _Field extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              const BorderSide(color: Color(0xFFD9381E), width: 1.8),
+          borderSide: const BorderSide(color: Color(0xFFD9381E), width: 1.8),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              const BorderSide(color: Colors.redAccent, width: 1.5),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              const BorderSide(color: Colors.redAccent, width: 1.8),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.8),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
